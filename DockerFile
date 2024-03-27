@@ -1,0 +1,18 @@
+FROM node:lts-slim as build
+WORKDIR /app
+COPY ./package.json .
+RUN yarn install --ignore-scripts
+COPY ./ /app/
+RUN yarn build
+
+FROM node:lts-slim
+ENV NODE_ENV production
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init
+WORKDIR /app
+COPY ./package.json .
+RUN yarn install --production --ignore-scripts
+COPY --from=build app/dist .
+RUN chown -R node:node ./
+USER node
+CMD ["dumb-init", "node", "src/main"]
+

@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: postgres_database
+    image: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - "./scripts/docker-entrypoint-initdb.d/init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh"
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: "CMD_SHELL"
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: btb
+      POSTGRES_PASSWORD: user
+
+  btb_backend:
+    container_name: btb_backend
+    build: 
+      context: .
+      dockerfile: DockerFile
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    environment:
+      - DATABASE_HOST=postgres
+    
+  
+volumes:
+  pgdata:
