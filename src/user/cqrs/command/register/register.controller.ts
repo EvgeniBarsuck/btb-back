@@ -31,7 +31,7 @@ export class RegisterController {
     type: RegisterResponseDto,
   })
   async register(@Body() { email, password }: RegisterRequestBodyDto) {
-    this.logger.log('info', 'Register user');
+    this.logger.log('info', `${RegisterController.name}: Register user`);
 
     const registerCommand = new RegisterCommand(email, password);
 
@@ -42,12 +42,17 @@ export class RegisterController {
 
     return registerCommandResult
       .map((val) => {
-        this.logger.log('info', 'User registration completed successfully')
+        this.logger.log(
+          'info',
+          `${RegisterController.name}: User registration completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('User registration failed with an error');
+        this.logger.error(
+          `${RegisterController.name}: User registration failed with an: ${err}`,
+        );
 
         throw new BadRequestException(err);
       }).val;

@@ -52,7 +52,7 @@ export class DeleteController {
     @Param('blogId') blogId: string,
     @User() user,
   ) {
-    this.logger.log('info', 'Delete blog');
+    this.logger.log('info', `${DeleteController}: Delete blog`);
 
     const deleteCommand = new DeleteCommand({ blogId, userId: user.sub });
 
@@ -63,12 +63,17 @@ export class DeleteController {
 
     return deleteCommandResult
       .map((val) => {
-        this.logger.log('info', 'blog deletion completed successfully');
+        this.logger.log(
+          'info',
+          `${DeleteController.name}: Blog deletion completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('blog deletion failed with an error');
+        this.logger.error(
+          `${DeleteController.name}: blog deletion failed with an error: ${err}`,
+        );
 
         throw new BadRequestException(err);
       }).val;

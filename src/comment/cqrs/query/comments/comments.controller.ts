@@ -31,7 +31,7 @@ export class CommentsController {
     type: NotFoundExceptionDto,
   })
   async get(@Param('postId') postId: string) {
-    this.logger.log('info', 'Get cooments');
+    this.logger.log('info', `${CommentsController.name}: Get cooments`);
 
     const commentsQuery = new CommentsQuery(postId);
 
@@ -42,12 +42,17 @@ export class CommentsController {
 
     return commentsQueryResult
       .map((val) => {
-        this.logger.log('info', 'Get comments completed successfully');
+        this.logger.log(
+          'info',
+          `${CommentsController.name}: Get comments completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Get comments failed with an error');
+        this.logger.error(
+          `${CommentsController.name}: Get comments failed with an error: ${err}`,
+        );
 
         throw new BadRequestException(err);
       }).val;

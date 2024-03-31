@@ -20,7 +20,7 @@ export class BlogsController {
     type: [GetBlogsResponseDto],
   })
   async blogs() {
-    this.logger.log('info', 'Get blogs');
+    this.logger.log('info', `${BlogsController.name}: Get blogs`);
 
     const blogsQuery = new BlogsQuery();
 
@@ -30,7 +30,10 @@ export class BlogsController {
     >(blogsQuery);
 
     return blogQueryResult.map((val) => {
-      this.logger.log('info', 'Get blogs completed successfully')
+      this.logger.log(
+        'info',
+        `${BlogsController.name}: Get blogs completed successfully`,
+      );
 
       return val;
     }).val;

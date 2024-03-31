@@ -47,7 +47,7 @@ export class DeleteController {
     @User() user: { sub: string },
     @Query('blogId') blogId: string,
   ) {
-    this.logger.log('info', 'Delete post');
+    this.logger.log('info', `${DeleteController.name}: Delete post`);
 
     const deleteCommand = new DeleteCommand({
       postId,
@@ -62,12 +62,17 @@ export class DeleteController {
 
     return deleteCommandResult
       .map((val) => {
-        this.logger.log('info', 'Post deletion completed successfully')
+        this.logger.log(
+          'info',
+          `${DeleteController.name}: Post deletion completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Post deletion failed with an error');
+        this.logger.error(
+          `${DeleteController.name}: Post deletion failed with an error: ${err}`,
+        );
 
         throw new BadRequestException(err);
       }).val;

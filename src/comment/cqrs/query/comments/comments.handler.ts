@@ -14,7 +14,7 @@ export class CommentsHandler implements IQueryHandler<CommentsQuery> {
 
       return Ok(result);
     } catch (e) {
-      return Err({ created: false });
+      return Err({ fetched: false });
     }
   }
 }

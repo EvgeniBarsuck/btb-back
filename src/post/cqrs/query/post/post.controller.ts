@@ -27,7 +27,7 @@ export class PostController {
     type: GetPostResponseDto,
   })
   async get(@Param('postId') postId: string) {
-    this.logger.log('info', 'Get post by id');
+    this.logger.log('info', `${PostController.name}: Get post by id`);
 
     const postQuery = new PostQuery(postId);
 
@@ -38,12 +38,17 @@ export class PostController {
 
     return postQueryResult
       .map((val) => {
-        this.logger.log('info', 'Get post by id completed successfully')
+        this.logger.log(
+          'info',
+          `${PostController.name}: Get post by id completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Get post by id failed with an error');
+        this.logger.error(
+          `${PostController.name}: Get post by id failed with an error: ${err}`,
+        );
 
         throw new NotFoundException(err);
       });

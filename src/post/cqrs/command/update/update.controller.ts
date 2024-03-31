@@ -47,7 +47,7 @@ export class UpdateController {
     @Query('blogId') blogId: string,
     @User() user: { sub: string },
   ) {
-    this.logger.log('info', 'Get post by id');
+    this.logger.log('info', `${UpdateController.name}: Get post by id`);
 
     const updateCommand = new UpdateCommand({
       ...body,
@@ -63,12 +63,17 @@ export class UpdateController {
 
     return updateCommandResult
       .map((val) => {
-        this.logger.log('info', 'Post updation completed successfully')
+        this.logger.log(
+          'info',
+          `${UpdateController.name}: Post updation completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Post updation failed with an error');
+        this.logger.error(
+          `${UpdateController.name}: Post updation failed with an error: ${err}`,
+        );
 
         return err;
       }).val;

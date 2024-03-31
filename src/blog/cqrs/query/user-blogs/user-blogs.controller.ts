@@ -25,7 +25,7 @@ export class UserBlogsController {
     type: [GetUserBlogsResponseDto],
   })
   async userBlogs(@User() user: { sub: string }) {
-    this.logger.log('info', 'Get user blogs');
+    this.logger.log('info', `${UserBlogsController.name}: Get user blogs`);
 
     const blogsQuery = new UserBlogsQuery({ userId: user.sub });
 
@@ -35,7 +35,10 @@ export class UserBlogsController {
     >(blogsQuery);
 
     return userBlogQueryResult.map((val) => {
-      this.logger.log('info', 'Get user blogs completed successfully');
+      this.logger.log(
+        'info',
+        `${UserBlogsController.name}: Get user blogs completed successfully`,
+      );
 
       return val;
     }).val;

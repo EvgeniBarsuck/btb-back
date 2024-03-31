@@ -1,14 +1,13 @@
 import {
   CreateDateColumn,
   Entity,
-  Generated,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class EntityBase {
   @PrimaryGeneratedColumn('uuid')
-  @Generated('uuid')
   public id: string;
 
   @CreateDateColumn({
@@ -18,7 +17,7 @@ export class EntityBase {
   })
   public createdAt: Date;
 
-  @CreateDateColumn({
+  @UpdateDateColumn({
     name: 'updated_at',
     type: 'timestamp without time zone',
     default: new Date(),

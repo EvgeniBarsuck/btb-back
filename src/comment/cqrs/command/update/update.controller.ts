@@ -46,7 +46,7 @@ export class UpdateController {
     @Param('commentId') commentId: string,
     @User() user: { sub: string },
   ) {
-    this.logger.log('info', 'Update comment');
+    this.logger.log('info', `${UpdateController.name}: Update comment`);
 
     const updateCommand = new UpdateCommand({
       ...body,
@@ -61,12 +61,17 @@ export class UpdateController {
 
     return updateCommandResult
       .map((val) => {
-        this.logger.log('info', 'Comment updation completed successfully')
+        this.logger.log(
+          'info',
+          `${UpdateController.name}: Comment updation completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Comment updation failed with an error');
+        this.logger.error(
+          `${UpdateController.name}: Comment updation failed with an error: ${err}`,
+        );
 
         throw new BadRequestException(err);
       });

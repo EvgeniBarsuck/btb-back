@@ -54,10 +54,9 @@ export class CreateController {
   })
   async create(
     @Body() body: CreateBlogRequestBodyDto,
-    @Res() res: Response,
     @User() user: { sub: string },
   ) {
-    this.logger.log('info', 'Create new blog')
+    this.logger.log('info', `${CreateController.name}: Create new blog`);
     const registerCommand = new CreateCommand({ ...body, userId: user.sub });
 
     const cretateCommandResult = await this.commandBus.execute<
@@ -67,11 +66,16 @@ export class CreateController {
 
     return cretateCommandResult
       .map((val) => {
-        this.logger.log('info', 'blog creation completed successfully');
+        this.logger.log(
+          'info',
+          `${CreateController.name}: Blog creation completed successfully`,
+        );
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('blog creation failed with an error');
+        this.logger.error(
+          `${CreateController.name}: Blog creation failed with an error: ${err}`,
+        );
         throw new BadRequestException(err);
       }).val;
   }

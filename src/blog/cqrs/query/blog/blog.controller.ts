@@ -42,7 +42,7 @@ export class BlogController {
     type: NotFoundExceptionDto,
   })
   async update(@Res() res: Response, @Param('blogId') blogId: string) {
-    this.logger.log('info', 'Get blog by id');
+    this.logger.log('info', `${BlogController.name}: Get blog by id`);
 
     const blogQuery = new BlogQuery(blogId);
 
@@ -53,11 +53,16 @@ export class BlogController {
 
     return blogQueryResult
       .map((val) => {
-        this.logger.log('info', 'Get blog by id completed successfully')
+        this.logger.log(
+          'info',
+          `${BlogController}: Get blog by id completed successfully`,
+        );
         return res.status(HttpStatus.OK).send(val);
       })
       .mapErr((err) => {
-        this.logger.error('Get blog by id failed with an error');
+        this.logger.error(
+          `${BlogController.name}: Get blog by id failed with an error: ${err}`,
+        );
         return res.status(HttpStatus.BAD_REQUEST).send(err);
       }).val;
   }

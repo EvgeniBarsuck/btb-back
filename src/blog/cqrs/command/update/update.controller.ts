@@ -1,4 +1,5 @@
 import {
+  BadGatewayException,
   Body,
   Controller,
   HttpStatus,
@@ -59,7 +60,7 @@ export class UpdateController {
     @Param('blogId') blogId: string,
     @User() user,
   ) {
-    this.logger.log('info', 'Update blog');
+    this.logger.log('info', `${UpdateController.name}: Update blog`);
 
     const registerCommand = new UpdateCommand({
       ...body,
@@ -74,14 +75,19 @@ export class UpdateController {
 
     return updateCommandResult
       .map((val) => {
-        this.logger.log('info', 'Blog updation completed successfully');
+        this.logger.log(
+          'info',
+          `${UpdateController.name}: Blog updation completed successfully`,
+        );
 
-        return res.status(HttpStatus.OK).send(val);
+        return val;
       })
       .mapErr((err) => {
-        this.logger.error('blog updation failed with an error');
+        this.logger.error(
+          `${UpdateController.name}: Blog updation failed with an error: ${err}`,
+        );
 
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
+        throw new BadGatewayException(err);
       }).val;
   }
 }

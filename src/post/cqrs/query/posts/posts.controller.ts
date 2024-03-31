@@ -26,7 +26,7 @@ export class PostsController {
     type: GetPostsResponseDto,
   })
   async get() {
-    this.logger.log('info', 'Get posts');
+    this.logger.log('info', `${PostsController.name}: Get posts`);
 
     const postsQuery = new PostsQuery();
 
@@ -37,12 +37,17 @@ export class PostsController {
 
     return postsQueryResult
       .map((val) => {
-        this.logger.log('info', 'Get posts completed successfully')
+        this.logger.log(
+          'info',
+          `${PostsController.name}: Get posts completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Get posts failed with an error');
+        this.logger.error(
+          `${PostsController.name}: Get posts failed with an error: ${err}`,
+        );
 
         throw new BadRequestException(err);
       }).val;

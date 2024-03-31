@@ -31,7 +31,7 @@ export class LoginController {
     type: LoginResponseDto,
   })
   async login(@Body() { email, password }: LoginRequestBodyDto) {
-    this.logger.log('info', 'Login user');
+    this.logger.log('info', `${LoginController.name}: Login user`);
 
     const loginCommand = new LoginCommand(email, password);
 
@@ -42,12 +42,17 @@ export class LoginController {
 
     return loginCommandResult
       .map((val) => {
-        this.logger.log('info', 'Login user completed successfully')
+        this.logger.log(
+          'info',
+          `${LoginController.name}: Login user completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Login user failed with an error');
+        this.logger.error(
+          `${LoginController.name}: Login user failed with an error: ${err}`,
+        );
 
         throw new HttpException(err, err.status);
       }).val;

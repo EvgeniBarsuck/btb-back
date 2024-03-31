@@ -44,7 +44,7 @@ export class CreateController {
     @Body() body: CreateRequestBodyDto,
     @User() user: { sub: string },
   ) {
-    this.logger.log('info', 'Create post');
+    this.logger.log('info', `${CreateController.name}: Create post`);
 
     const createCommand = new CreateCommand({ ...body, userId: user.sub });
 
@@ -55,12 +55,17 @@ export class CreateController {
 
     return cretateCommandResult
       .map((val) => {
-        this.logger.log('info', 'Post creation completed successfully')
+        this.logger.log(
+          'info',
+          `${CreateController.name}: Post creation completed successfully`,
+        );
 
         return val;
       })
       .mapErr((err) => {
-        this.logger.error('Post creation failed with an error');
+        this.logger.error(
+          `${CreateController.name}: Post creation failed with an error': ${err}`,
+        );
 
         throw new BadRequestException(err);
       }).val;

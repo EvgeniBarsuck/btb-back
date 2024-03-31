@@ -7,7 +7,7 @@ export class NotFoundExceptionDto {
   public message: string;
 
   @ApiProperty({
-    example: 400,
+    example: 404,
   })
   public status: number;
 }

@@ -1,4 +1,9 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  TableColumn,
+  TableForeignKey,
+} from 'typeorm';
 
 export class AddRelationsBetweenUserBlogAndPOstComment1711531284712
   implements MigrationInterface
@@ -6,82 +11,180 @@ export class AddRelationsBetweenUserBlogAndPOstComment1711531284712
   name = 'AddRelationsBetweenUserBlogAndPOstComment1711531284712';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "blogs" RENAME COLUMN "user_id" TO "userId"`,
+    await queryRunner.renameColumn('blogs', 'user_id', 'userId');
+
+    await queryRunner.addColumn(
+      'comments',
+      new TableColumn({
+        name: 'postId',
+        type: 'uuid',
+        isNullable: true,
+      }),
     );
-    await queryRunner.query(`ALTER TABLE "comments" ADD "postId" uuid`);
-    await queryRunner.query(
-      `ALTER TABLE "comments" ALTER COLUMN "created_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
+
+    const tables = ['comments', 'posts', 'blogs', 'users'];
+    for (const table of tables) {
+      await queryRunner.changeColumn(
+        table,
+        'created_at',
+        new TableColumn({
+          name: 'created_at',
+          type: 'timestamp',
+          default: () => 'CURRENT_TIMESTAMP',
+        }),
+      );
+      await queryRunner.changeColumn(
+        table,
+        'updated_at',
+        new TableColumn({
+          name: 'updated_at',
+          type: 'timestamp',
+          default: () => 'CURRENT_TIMESTAMP',
+        }),
+      );
+    }
+
+    await queryRunner.dropColumn('blogs', 'userId');
+    await queryRunner.addColumn(
+      'blogs',
+      new TableColumn({
+        name: 'userId',
+        type: 'uuid',
+        isNullable: true,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "comments" ALTER COLUMN "updated_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
+
+    await queryRunner.createForeignKey(
+      'comments',
+      new TableForeignKey({
+        columnNames: ['postId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'posts',
+        onDelete: 'NO ACTION',
+        onUpdate: 'NO ACTION',
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "posts" ALTER COLUMN "created_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "posts" ALTER COLUMN "updated_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ALTER COLUMN "created_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ALTER COLUMN "updated_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
-    );
-    await queryRunner.query(`ALTER TABLE "blogs" DROP COLUMN "userId"`);
-    await queryRunner.query(`ALTER TABLE "blogs" ADD "userId" uuid`);
-    await queryRunner.query(
-      `ALTER TABLE "users" ALTER COLUMN "created_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "users" ALTER COLUMN "updated_at" SET DEFAULT '"2024-03-27T09:21:26.912Z"'`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "comments" ADD CONSTRAINT "FK_e44ddaaa6d058cb4092f83ad61f" FOREIGN KEY ("postId") REFERENCES "posts"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ADD CONSTRAINT "FK_50205032574e0b039d655f6cfd3" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
+
+    await queryRunner.createForeignKey(
+      'blogs',
+      new TableForeignKey({
+        columnNames: ['userId'],
+        referencedColumnNames: ['id'],
+        referencedTableName: 'users',
+        onDelete: 'NO ACTION',
+        onUpdate: 'NO ACTION',
+      }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "blogs" DROP CONSTRAINT "FK_50205032574e0b039d655f6cfd3"`,
+    // Удаление внешних ключей
+    const tableBlogs = await queryRunner.getTable('blogs');
+    const foreignKeyBlogs = tableBlogs.foreignKeys.find(
+      (fk) => fk.columnNames.indexOf('userId') !== -1,
     );
-    await queryRunner.query(
-      `ALTER TABLE "comments" DROP CONSTRAINT "FK_e44ddaaa6d058cb4092f83ad61f"`,
+    if (foreignKeyBlogs) {
+      await queryRunner.dropForeignKey('blogs', foreignKeyBlogs);
+    }
+
+    const tableComments = await queryRunner.getTable('comments');
+    const foreignKeyComments = tableComments.foreignKeys.find(
+      (fk) => fk.columnNames.indexOf('postId') !== -1,
     );
-    await queryRunner.query(
-      `ALTER TABLE "users" ALTER COLUMN "updated_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+    if (foreignKeyComments) {
+      await queryRunner.dropForeignKey('comments', foreignKeyComments);
+    }
+
+    await queryRunner.changeColumn(
+      'users',
+      'updated_at',
+      new TableColumn({
+        name: 'updated_at',
+        type: 'timestamp',
+        default: `'2024-03-26 23:45:03.825'`,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "users" ALTER COLUMN "created_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+    await queryRunner.changeColumn(
+      'users',
+      'created_at',
+      new TableColumn({
+        name: 'created_at',
+        type: 'timestamp',
+        default: '2024-03-26 23:45:03.825',
+      }),
     );
-    await queryRunner.query(`ALTER TABLE "blogs" DROP COLUMN "userId"`);
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ADD "userId" character varying(40) NOT NULL`,
+
+    await queryRunner.dropColumn('blogs', 'userId');
+    await queryRunner.addColumn(
+      'blogs',
+      new TableColumn({
+        name: 'userId',
+        type: 'character varying',
+        length: '40',
+        isNullable: false,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ALTER COLUMN "updated_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+
+    await queryRunner.changeColumn(
+      'blogs',
+      'updated_at',
+      new TableColumn({
+        name: 'updated_at',
+        type: 'timestamp',
+        default: `'2024-03-26 23:45:03.825'`,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ALTER COLUMN "created_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+    await queryRunner.changeColumn(
+      'blogs',
+      'created_at',
+      new TableColumn({
+        name: 'created_at',
+
+        type: 'timestamp',
+        default: `'2024-03-26 23:45:03.825'`,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "posts" ALTER COLUMN "updated_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+    await queryRunner.changeColumn(
+      'posts',
+      'updated_at',
+      new TableColumn({
+        name: 'updated_at',
+
+        type: 'timestamp',
+        default: `'2024-03-26 23:45:03.825'`,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "posts" ALTER COLUMN "created_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+    await queryRunner.changeColumn(
+      'posts',
+      'created_at',
+      new TableColumn({
+        name: 'created_at',
+
+        type: 'timestamp',
+        default: `'2024-03-26 23:45:03.825'`,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "comments" ALTER COLUMN "updated_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+    await queryRunner.changeColumn(
+      'comments',
+      'updated_at',
+      new TableColumn({
+        name: 'updated_at',
+
+        type: 'timestamp',
+        default: `'2024-03-26 23:45:03.825'`,
+      }),
     );
-    await queryRunner.query(
-      `ALTER TABLE "comments" ALTER COLUMN "created_at" SET DEFAULT '2024-03-26 23:45:03.825'`,
+    await queryRunner.changeColumn(
+      'comments',
+      'created_at',
+      new TableColumn({
+        name: 'created_at',
+
+        type: 'timestamp',
+        default: `'2024-03-26 23:45:03.825'`,
+      }),
     );
-    await queryRunner.query(`ALTER TABLE "comments" DROP COLUMN "postId"`);
-    await queryRunner.query(
-      `ALTER TABLE "blogs" RENAME COLUMN "userId" TO "user_id"`,
-    );
+
+    await queryRunner.renameColumn('blogs', 'userId', 'user_id');
   }
 }

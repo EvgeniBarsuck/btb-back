@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToMany, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 
 import { UserEntity } from '@app/user/database/user.entity';
 import { EntityBase } from '@libs/base/entity.base';
@@ -27,9 +27,10 @@ export class CommentEntity extends EntityBase {
   })
   public message: string;
 
-  @ManyToMany(() => UserEntity)
+  @ManyToMany(() => UserEntity, (user) => user.comments)
+  @JoinTable()
   public users: UserEntity[] | string[];
 
   @ManyToOne(() => PostEntity, (post) => post.id)
-  post: PostEntity | string;
+  public post: PostEntity | string;
 }

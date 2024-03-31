@@ -47,7 +47,7 @@ export class UserEntity extends EntityBase {
   })
   public email: string;
 
-  @ManyToMany(() => CommentEntity)
+  @ManyToMany(() => CommentEntity, (comment) => comment.users)
   @JoinTable()
   public comments: CommentEntity[];
 
