@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { BlogEntity } from '@app/blog/database/blog.entity';
 import {
   DomainEntityBase,
-  EntityProps,
   IDomainEntityBase,
-} from '../../../../libs/base/domain.entity.base';
-import { BlogEntity } from '../../database/blog.entity';
+  EntityProps,
+} from '@libs/base/domain.entity.base';
 
 export class Blog implements DomainEntityBase<BlogEntity> {
   private entity: IDomainEntityBase<BlogEntity>;
@@ -31,4 +31,3 @@ export class Blog implements DomainEntityBase<BlogEntity> {
     return this.entity.props.name;
   }
 }
-

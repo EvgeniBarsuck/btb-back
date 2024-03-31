@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
+
 import {
   DomainEntityBase,
-  EntityProps,
   IDomainEntityBase,
-} from '../../../../libs/base/domain.entity.base';
-import { UserEntity } from '../../database/user.entity';
+  EntityProps,
+} from '@libs/base/domain.entity.base';
+import { UserEntity } from '@app/user/database/user.entity';
 
 export class User implements DomainEntityBase<UserEntity> {
   private entity: IDomainEntityBase<UserEntity>;

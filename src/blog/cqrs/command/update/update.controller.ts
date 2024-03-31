@@ -1,43 +1,87 @@
-import { Body, Controller, HttpStatus, Param, Put, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Inject,
+  Logger,
+  Param,
+  Put,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Result } from 'ts-results';
 import { Response } from 'express';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
-import { UpdateRequestBodyDto } from './dto/update.request.dto';
-import { UpdateResponseDto } from './dto/update.response.dto';
-import { UpdateCommand } from './update.command';
+import { User } from '@app/auth/decorators/user.decorator';
+import { AuthGuard } from '@app/auth/guards/auth.guard';
+import { UpdateBlogRequestBodyDto } from '@app/blog/cqrs/command/update/dto/update.request.dto';
+import { UpdateBlogResponseDto } from '@app/blog/cqrs/command/update/dto/update.response.dto';
+import { UpdateCommand } from '@app/blog/cqrs/command/update/update.command';
+import { BadRequestExceptionDto } from '@libs/exception/dto/bad-request.exception.dto';
+import { NotFoundExceptionDto } from '@libs/exception/dto/not-found.exception.dto';
 
 @Controller('blogs')
 @ApiTags('Blogs')
 export class UpdateController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   @Put(':blogId')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiBody({
-    type: UpdateRequestBodyDto,
+    type: UpdateBlogRequestBodyDto,
   })
   @ApiCreatedResponse({
-    type: UpdateResponseDto,
+    type: UpdateBlogResponseDto,
+  })
+  @ApiBadRequestResponse({
+    type: BadRequestExceptionDto,
+  })
+  @ApiNotFoundResponse({
+    type: NotFoundExceptionDto,
   })
   async update(
-    @Body() body: UpdateRequestBodyDto,
+    @Body() body: UpdateBlogRequestBodyDto,
     @Res() res: Response,
     @Param('blogId') blogId: string,
+    @User() user,
   ) {
-    const registerCommand = new UpdateCommand({ ...body, blogId });
+    this.logger.log('info', 'Update blog');
+
+    const registerCommand = new UpdateCommand({
+      ...body,
+      blogId,
+      userId: user.sub,
+    });
 
     const updateCommandResult = await this.commandBus.execute<
       UpdateCommand,
-      Result<UpdateResponseDto, { updated: false }>
+      Result<UpdateBlogResponseDto, { updated: false }>
     >(registerCommand);
 
-    updateCommandResult
+    return updateCommandResult
       .map((val) => {
+        this.logger.log('info', 'Blog updation completed successfully');
+
         return res.status(HttpStatus.OK).send(val);
       })
       .mapErr((err) => {
+        this.logger.error('blog updation failed with an error');
+
         return res.status(HttpStatus.BAD_REQUEST).send(err);
-      });
+      }).val;
   }
 }

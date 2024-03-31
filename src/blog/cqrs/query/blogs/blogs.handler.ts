@@ -1,8 +1,8 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
 
-import { BlogRepository } from 'src/blog/database/blog.repository';
-import { BlogsQuery } from './blogs.query';
+import { BlogRepository } from '@app/blog/database/blog.repository';
+import { BlogsQuery } from '@app/blog/cqrs/query/blogs/blogs.query';
 
 @QueryHandler(BlogsQuery)
 export class BlogsHandler implements IQueryHandler<BlogsQuery> {
@@ -14,8 +14,7 @@ export class BlogsHandler implements IQueryHandler<BlogsQuery> {
 
       return Ok(result);
     } catch (e) {
-      console.log('🚀 ~ CreateHandler ~ execute ~ e:', e);
-      return Err({ created: false });
+      return Err({ fetched: false });
     }
   }
 }

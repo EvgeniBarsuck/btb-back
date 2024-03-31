@@ -8,13 +8,10 @@ import {
 } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { RepositoryBase } from '../../../libs/base/repository.base';
-import {
-  EntityProps,
-  IDomainEntityBase,
-} from '../../../libs/base/domain.entity.base';
-import { UserEntity } from './user.entity';
-import { UserMapper } from './user.mapper';
+import { UserEntity } from '@app/user/database/user.entity';
+import { UserMapper } from '@app/user/database/user.mapper';
+import { RepositoryBase } from '@libs/base/repository.base';
+import { IDomainEntityBase, EntityProps } from '@libs/base/domain.entity.base';
 
 @Injectable()
 export class UserRepository implements RepositoryBase<UserEntity> {

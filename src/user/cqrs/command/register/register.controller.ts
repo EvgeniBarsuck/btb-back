@@ -1,17 +1,27 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Inject,
+  Logger,
+  Post,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { Result } from 'ts-results';
-import { Response } from 'express';
 import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
-import { RegisterRequestBodyDto } from './dto/register.request.dto';
-import { RegisterResponseDto } from './dto/register.response.dto';
-import { RegisterCommand } from './register.command';
+import { RegisterRequestBodyDto } from '@app/user/cqrs/command/register/dto/register.request.dto';
+import { RegisterResponseDto } from '@app/user/cqrs/command/register/dto/register.response.dto';
+import { RegisterCommand } from '@app/user/cqrs/command/register/register.command';
 
 @Controller('users')
 @ApiTags('Users')
 export class RegisterController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   @Post('register')
   @ApiBody({
@@ -20,10 +30,9 @@ export class RegisterController {
   @ApiCreatedResponse({
     type: RegisterResponseDto,
   })
-  async register(
-    @Body() { email, password }: RegisterRequestBodyDto,
-    @Res() res: Response,
-  ) {
+  async register(@Body() { email, password }: RegisterRequestBodyDto) {
+    this.logger.log('info', 'Register user');
+
     const registerCommand = new RegisterCommand(email, password);
 
     const registerCommandResult = await this.commandBus.execute<
@@ -31,12 +40,16 @@ export class RegisterController {
       Result<{ created: boolean }, { created: false }>
     >(registerCommand);
 
-    registerCommandResult
+    return registerCommandResult
       .map((val) => {
-        return res.status(HttpStatus.CREATED).send(val);
+        this.logger.log('info', 'User registration completed successfully')
+
+        return val;
       })
       .mapErr((err) => {
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
-      });
+        this.logger.error('User registration failed with an error');
+
+        throw new BadRequestException(err);
+      }).val;
   }
 }

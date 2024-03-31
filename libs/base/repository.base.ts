@@ -8,5 +8,5 @@ export abstract class RepositoryBase<T> {
     conditions: FindOptionsWhere<T>,
     fields: Partial<EntityProps<T>>,
   ): Promise<UpdateResult>;
-  abstract delete(id: string): Promise<DeleteResult>;
+  abstract delete(id: string, userId?: string): Promise<DeleteResult>;
 }

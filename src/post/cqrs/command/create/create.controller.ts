@@ -1,38 +1,68 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Inject,
+  Logger,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Result } from 'ts-results';
-import { Response } from 'express';
-import { CreateRequestBodyDto } from './dto/create.request.dto';
-import { CreateResponseDto } from './dto/create.response.dto';
-import { CreateCommand } from './create.command';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+
+import { CreateRequestBodyDto } from '@app/post/cqrs/command/create/dto/create.request.dto';
+import { CreateResponseDto } from '@app/post/cqrs/command/create/dto/create.response.dto';
+import { CreateCommand } from '@app/post/cqrs/command/create/create.command';
+import { AuthGuard } from '@app/auth/guards/auth.guard';
+import { User } from '@app/auth/decorators/user.decorator';
 
 @Controller('posts')
 @ApiTags('Posts')
 export class CreateController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiBody({
     type: CreateRequestBodyDto,
   })
   @ApiCreatedResponse({
     type: CreateResponseDto,
   })
-  async create(@Body() body: CreateRequestBodyDto, @Res() res: Response) {
-    const createCommand = new CreateCommand(body);
+  async create(
+    @Body() body: CreateRequestBodyDto,
+    @User() user: { sub: string },
+  ) {
+    this.logger.log('info', 'Create post');
+
+    const createCommand = new CreateCommand({ ...body, userId: user.sub });
 
     const cretateCommandResult = await this.commandBus.execute<
       CreateCommand,
       Result<CreateResponseDto, { created: false }>
     >(createCommand);
 
-    cretateCommandResult
+    return cretateCommandResult
       .map((val) => {
-        return res.status(HttpStatus.CREATED).send(val);
+        this.logger.log('info', 'Post creation completed successfully')
+
+        return val;
       })
       .mapErr((err) => {
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
-      });
+        this.logger.error('Post creation failed with an error');
+
+        throw new BadRequestException(err);
+      }).val;
   }
 }

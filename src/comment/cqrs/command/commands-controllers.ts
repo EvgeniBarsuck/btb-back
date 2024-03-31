@@ -1,6 +1,6 @@
-import { CreateController } from './create/create.controller';
-import { DeleteController } from './delete/delete.controller';
-import { UpdateController } from './update/update.controller';
+import { UpdateController } from '@app/comment/cqrs/command/update/update.controller';
+import { CreateController } from '@app/comment/cqrs/command/create/create.controller';
+import { DeleteController } from '@app/comment/cqrs/command/delete/delete.controller';
 
 export const commandsControllers = [
   CreateController,

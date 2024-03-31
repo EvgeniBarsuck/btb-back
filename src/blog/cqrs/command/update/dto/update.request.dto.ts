@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, Max, Min } from 'class-validator';
 
-export class UpdateRequestBodyDto {
+export class UpdateBlogRequestBodyDto {
   @ApiProperty({
     example: 'Travel blog',
     maxLength: 30,

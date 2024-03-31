@@ -1,42 +1,69 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Inject,
+  Logger,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Result } from 'ts-results';
-import { Response } from 'express';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
-import { CreateCommentRequestBodyDto } from './dto/create.request.dto';
-import { CreateResponseDto } from './dto/create.response.dto';
-import { CreateCommand } from './create.command';
+import { CreateCommentRequestBodyDto } from '@app/comment/cqrs/command/create/dto/create.request.dto';
+import { CreateCommentResponseDto } from '@app/comment/cqrs/command/create/dto/create.response.dto';
+import { CreateCommand } from '@app/comment/cqrs/command/create/create.command';
+import { AuthGuard } from '@app/auth/guards/auth.guard';
+import { User } from '@app/auth/decorators/user.decorator';
 
 @Controller('comments')
 @ApiTags('Comments')
 export class CreateController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiBody({
     type: CreateCommentRequestBodyDto,
   })
   @ApiCreatedResponse({
-    type: CreateResponseDto,
+    type: CreateCommentResponseDto,
   })
   async create(
     @Body() body: CreateCommentRequestBodyDto,
-    @Res() res: Response,
+    @User() user: { sub: string },
   ) {
-    const createCommand = new CreateCommand(body);
+    this.logger.log('info', 'Create cooment');
+
+    const createCommand = new CreateCommand({ ...body, userId: user.sub });
 
     const cretateCommandResult = await this.commandBus.execute<
       CreateCommand,
-      Result<CreateResponseDto, { created: false }>
+      Result<CreateCommentResponseDto, { created: false }>
     >(createCommand);
 
-    cretateCommandResult
+    return cretateCommandResult
       .map((val) => {
-        return res.status(HttpStatus.CREATED).send(val);
+        this.logger.log('info', 'Comment creation completed successfully')
+
+        return val;
       })
       .mapErr((err) => {
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
-      });
+        this.logger.error('Comment creation failed with an error');
+
+        throw new BadRequestException(err);
+      }).val;
   }
 }

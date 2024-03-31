@@ -1,9 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
 
-import { Blog } from 'src/blog/domain/entity/blog.entity.domain';
-import { BlogRepository } from 'src/blog/database/blog.repository';
-import { CreateCommand } from './create.command';
+import { Blog } from '@app/blog/domain/entity/blog.entity.domain';
+import { BlogRepository } from '@app/blog/database/blog.repository';
+import { CreateCommand } from '@app/blog/cqrs/command/create/create.command';
 
 @CommandHandler(CreateCommand)
 export class CreateHandler implements ICommandHandler<CreateCommand> {
@@ -24,7 +24,6 @@ export class CreateHandler implements ICommandHandler<CreateCommand> {
 
       return Ok({ id: result.id });
     } catch (e) {
-      console.log("🚀 ~ CreateHandler ~ execute ~ e:", e)
       return Err({ created: false });
     }
   }

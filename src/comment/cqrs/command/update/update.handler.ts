@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
 
-import { UpdateCommand } from './update.command';
-import { CommentRepository } from 'src/comment/database/comment.repository';
+import { UpdateCommand } from '@app/comment/cqrs/command/update/update.command';
+import { CommentRepository } from '@app/comment/database/comment.repository';
 
 @CommandHandler(UpdateCommand)
 export class UpdateHandler implements ICommandHandler<UpdateCommand> {
@@ -19,7 +19,6 @@ export class UpdateHandler implements ICommandHandler<UpdateCommand> {
 
       return Ok({ count: result.affected });
     } catch (e) {
-      console.log('🚀 ~ CreateHandler ~ execute ~ e:', e);
       return Err({ updated: false });
     }
   }

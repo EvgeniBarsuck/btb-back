@@ -1,31 +1,29 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
 
-import { UpdateCommand } from './update.command';
-import { Blog } from 'src/blog/domain/entity/blog.entity.domain';
-import { BlogRepository } from 'src/blog/database/blog.repository';
+import { UpdateCommand } from '@app/blog/cqrs/command/update/update.command';
+import { BlogRepository } from '@app/blog/database/blog.repository';
 
 @CommandHandler(UpdateCommand)
 export class UpdateHandler implements ICommandHandler<UpdateCommand> {
   constructor(private repository: BlogRepository) {}
 
   async execute(command: UpdateCommand) {
-    const { longDescription, name, shortDescription } = command;
-    const blogEntity = Blog.create({
-      longDescription,
-      name,
-      shortDescription,
-      posts: [],
-      user: '3580d988-042d-4a9c-bd98-ab170e64b572',
-    });
+    const { longDescription, name, shortDescription, userId, blogId } = command;
 
     try {
-      const result = await this.repository.save(blogEntity.getEntity());
+      await this.repository.update(
+        { id: blogId, user: { id: userId } },
+        {
+          longDescription,
+          name,
+          shortDescription,
+        },
+      );
 
-      return Ok({ id: result.id });
+      return Ok({ updated: true});
     } catch (e) {
-      console.log("🚀 ~ CreateHandler ~ execute ~ e:", e)
-      return Err({ created: false });
+      return Err({ updated: false });
     }
   }
 }

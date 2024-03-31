@@ -6,4 +6,5 @@ export class UpdateCommand {
 
   public message?: string;
   public commentId: string;
+  public userId: string;
 }

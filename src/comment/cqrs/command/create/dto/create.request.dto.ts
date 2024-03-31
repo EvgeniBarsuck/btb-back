@@ -18,11 +18,4 @@ export class CreateCommentRequestBodyDto {
   })
   @IsString()
   public postId: string;
-
-  @ApiProperty({
-    example: '3580d988-042d-4a9c-bd98-ab170e64b572',
-    minLength: 50,
-  })
-  @IsString()
-  public userId: string;
 }

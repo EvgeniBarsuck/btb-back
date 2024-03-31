@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-import { RepositoryBase } from '../../../libs/base/repository.base';
 import {
   DeleteResult,
   FindManyOptions,
@@ -9,12 +7,11 @@ import {
   Repository,
   UpdateResult,
 } from 'typeorm';
-import {
-  EntityProps,
-  IDomainEntityBase,
-} from '../../../libs/base/domain.entity.base';
-import { CommentMapper } from './comment.mapper';
-import { CommentEntity } from './comment.entity';
+
+import { CommentMapper } from '@app/comment/database/comment.mapper';
+import { CommentEntity } from '@app/comment/database/comment.entity';
+import { IDomainEntityBase, EntityProps } from '@libs/base/domain.entity.base';
+import { RepositoryBase } from '@libs/base/repository.base';
 
 @Injectable()
 export class CommentRepository implements RepositoryBase<CommentEntity> {
@@ -49,8 +46,8 @@ export class CommentRepository implements RepositoryBase<CommentEntity> {
     return this._commentRepository.update(conditions, fields);
   }
 
-  delete(id: string): Promise<DeleteResult> {
-    return this._commentRepository.delete(id);
+  delete(id: string, userId: string): Promise<DeleteResult> {
+    return this._commentRepository.delete({ id, users: { id: userId } });
   }
 
   async find(query?: FindManyOptions<CommentEntity>) {
@@ -62,7 +59,7 @@ export class CommentRepository implements RepositoryBase<CommentEntity> {
   async findPostComments(postId: string) {
     const entities = await this._commentRepository.find({
       where: { post: { id: postId } },
-      relations: ['posts'],
+      relations: ['post'],
     });
 
     return entities.map((entity) => this._mapper.toDomainProps(entity));

@@ -1,18 +1,34 @@
-import { Controller, Get, HttpStatus, Param, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Inject,
+  Logger,
+  NotFoundException,
+  Param,
+} from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Result } from 'ts-results';
-import { Response } from 'express';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
-import { PostQuery } from './post.query';
+import { PostQuery } from '@app/post/cqrs/query/post/post.query';
+import { GetPostResponseDto } from '@app/post/cqrs/query/post/dto/post.response.dto';
 
 @Controller('posts')
 @ApiTags('Posts')
 export class PostController {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(
+    private readonly queryBus: QueryBus,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   @Get(':postId')
-  async get(@Res() res: Response, @Param('postId') postId: string) {
+  @ApiOkResponse({
+    type: GetPostResponseDto,
+  })
+  async get(@Param('postId') postId: string) {
+    this.logger.log('info', 'Get post by id');
+
     const postQuery = new PostQuery(postId);
 
     const postQueryResult = await this.queryBus.execute<
@@ -20,12 +36,16 @@ export class PostController {
       Result<any, { found: false }>
     >(postQuery);
 
-    postQueryResult
+    return postQueryResult
       .map((val) => {
-        return res.status(HttpStatus.OK).send(val);
+        this.logger.log('info', 'Get post by id completed successfully')
+
+        return val;
       })
       .mapErr((err) => {
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
+        this.logger.error('Get post by id failed with an error');
+
+        throw new NotFoundException(err);
       });
   }
 }

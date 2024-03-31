@@ -1,8 +1,9 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
 
-import { PostQuery } from './post.query';
-import { PostRepository } from 'src/post/database/post.repository';
+import { PostQuery } from '@app/post/cqrs/query/post/post.query';
+import { PostRepository } from '@app/post/database/post.repository';
+import { NotFoundException } from '@nestjs/common';
 
 @QueryHandler(PostQuery)
 export class PostHandler implements IQueryHandler<PostQuery> {
@@ -12,9 +13,12 @@ export class PostHandler implements IQueryHandler<PostQuery> {
     try {
       const result = await this.repository.findOneById(postId);
 
+      if (!result) {
+        return Err(new NotFoundException());
+      }
+
       return Ok(result);
     } catch (e) {
-      console.log('🚀 ~ CreateHandler ~ execute ~ e:', e);
       return Err({ created: false });
     }
   }

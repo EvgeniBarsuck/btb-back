@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { IDomainEntityBase } from 'libs/base/domain.entity.base';
 
-import { Mapper } from '../../../libs/base/mapper.base';
-import { CommentEntity } from './comment.entity';
+import { IDomainEntityBase } from '@libs/base/domain.entity.base';
+import { CommentEntity } from '@app/comment/database/comment.entity';
+import { Mapper } from '@libs/base/mapper.base';
 
 @Injectable()
 export class CommentMapper implements Mapper<CommentEntity> {

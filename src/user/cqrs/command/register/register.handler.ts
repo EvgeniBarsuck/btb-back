@@ -1,9 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
 
-import { RegisterCommand } from './register.command';
-import { UserRepository } from '../../../database/user.repository';
-import { User } from '../../../domain/entity/user.entity.domain';
+import { RegisterCommand } from '@app/user/cqrs/command/register/register.command';
+import { UserRepository } from '@app/user/database/user.repository';
+import { User } from '@app/user/domain/entity/user.entity.domain';
 
 @CommandHandler(RegisterCommand)
 export class RegisterHandler implements ICommandHandler<RegisterCommand> {
@@ -24,7 +24,6 @@ export class RegisterHandler implements ICommandHandler<RegisterCommand> {
 
       return Ok({ created: true });
     } catch (e) {
-      console.log('🚀 ~ RegisterHandler ~ execute ~ e:', e);
       return Err({ created: false });
     }
   }

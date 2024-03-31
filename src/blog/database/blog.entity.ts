@@ -1,8 +1,8 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 
-import { PostEntity } from '../../../src/post/database/post.entity';
-import { EntityBase } from '../../../libs/base/entity.base';
-import { UserEntity } from '../../user/database/user.entity';
+import { PostEntity } from '@app/post/database/post.entity';
+import { UserEntity } from '@app/user/database/user.entity';
+import { EntityBase } from '@libs/base/entity.base';
 
 @Entity('blogs')
 export class BlogEntity extends EntityBase {

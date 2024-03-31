@@ -1,11 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { PostEntity } from '@app/post/database/post.entity';
 import {
   DomainEntityBase,
-  EntityProps,
   IDomainEntityBase,
-} from '../../../../libs/base/domain.entity.base';
-import { PostEntity } from 'src/post/database/post.entity';
+  EntityProps,
+} from '@libs/base/domain.entity.base';
 
 export class Post implements DomainEntityBase<PostEntity> {
   private entity: IDomainEntityBase<PostEntity>;

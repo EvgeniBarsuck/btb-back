@@ -8,33 +8,31 @@ import {
   UpdateResult,
 } from 'typeorm';
 
-import { RepositoryBase } from '../../../libs/base/repository.base';
-import {
-  EntityProps,
-  IDomainEntityBase,
-} from '../../../libs/base/domain.entity.base';
-import { PostEntity } from './post.entity';
-import { PostMapper } from './post.mapper';
+
+import { PostEntity } from '@app/post/database/post.entity';
+import { PostMapper } from '@app/post/database/post.mapper';
+import { RepositoryBase } from '@libs/base/repository.base';
+import { IDomainEntityBase, EntityProps } from '@libs/base/domain.entity.base';
 
 @Injectable()
 export class PostRepository implements RepositoryBase<PostEntity> {
   constructor(
     @InjectRepository(PostEntity)
-    private readonly _userRepository: Repository<PostEntity>,
+    private readonly _postRepository: Repository<PostEntity>,
     private readonly _mapper: PostMapper,
   ) {}
 
   async save(
     props: IDomainEntityBase<PostEntity>,
   ): Promise<IDomainEntityBase<PostEntity>> {
-    return this._userRepository.manager.transaction(async (manager) => {
+    return this._postRepository.manager.transaction(async (manager) => {
       const entity = await manager.save(this._mapper.toOrmProps(props));
 
       return this._mapper.toDomainProps(entity);
     });
   }
   async findOneById(id: string): Promise<IDomainEntityBase<PostEntity>> {
-    const entity = await this._userRepository.findOne({
+    const entity = await this._postRepository.findOne({
       where: { id },
       relations: ['comments'],
     });
@@ -46,15 +44,15 @@ export class PostRepository implements RepositoryBase<PostEntity> {
     conditions: FindOptionsWhere<PostEntity>,
     fields: Partial<EntityProps<PostEntity>>,
   ): Promise<UpdateResult> {
-    return this._userRepository.update(conditions, fields);
+    return this._postRepository.update(conditions, fields);
   }
 
   delete(id: string): Promise<DeleteResult> {
-    return this._userRepository.delete(id);
+    return this._postRepository.delete(id);
   }
 
   async find(query?: FindManyOptions<PostEntity>) {
-    const entities = await this._userRepository.find(query);
+    const entities = await this._postRepository.find(query);
 
     return entities.map((entity) => this._mapper.toDomainProps(entity));
   }

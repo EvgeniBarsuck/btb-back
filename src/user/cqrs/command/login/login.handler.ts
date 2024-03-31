@@ -2,9 +2,9 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
 import { HttpStatus } from '@nestjs/common';
 
-import { LoginCommand } from './login.command';
-import { UserRepository } from '../../../database/user.repository';
-import { AuthService } from 'src/auth/auth.service';
+import { LoginCommand } from '@app/user/cqrs/command/login/login.command';
+import { UserRepository } from '@app/user/database/user.repository';
+import { AuthService } from '@app/auth/auth.service';
 
 @CommandHandler(LoginCommand)
 export class LoginHandler implements ICommandHandler<LoginCommand> {
@@ -29,10 +29,12 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
         user.props.email,
       );
 
-      return Ok(accessToken);
+      return Ok({ accessToken: accessToken.access_token});
     } catch (e) {
-      console.log('🚀 ~ RegisterHandler ~ execute ~ e:', e);
-      return Err({ access: false });
+      return Err({
+        message: 'Server error',
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
     }
   }
 }

@@ -1,4 +1,4 @@
-import { LoginHandler } from './login/login.handler';
-import { RegisterHandler } from './register/register.handler';
+import { LoginHandler } from '@app/user/cqrs/command/login/login.handler';
+import { RegisterHandler } from '@app/user/cqrs/command/register/register.handler';
 
 export const commandsHandlers = [RegisterHandler, LoginHandler];

@@ -1,7 +1,8 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Err, Ok } from 'ts-results';
-import { CommentsQuery } from './comments.query';
-import { CommentRepository } from 'src/comment/database/comment.repository';
+
+import { CommentsQuery } from '@app/comment/cqrs/query/comments/comments.query';
+import { CommentRepository } from '@app/comment/database/comment.repository';
 
 @QueryHandler(CommentsQuery)
 export class CommentsHandler implements IQueryHandler<CommentsQuery> {
@@ -13,7 +14,6 @@ export class CommentsHandler implements IQueryHandler<CommentsQuery> {
 
       return Ok(result);
     } catch (e) {
-      console.log('🚀 ~ CreateHandler ~ execute ~ e:', e);
       return Err({ created: false });
     }
   }

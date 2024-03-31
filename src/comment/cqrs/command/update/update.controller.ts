@@ -1,43 +1,74 @@
-import { Body, Controller, HttpStatus, Param, Put, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Inject,
+  Logger,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
-import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Result } from 'ts-results';
-import { Response } from 'express';
 
-import { UpdateRequestBodyDto } from './dto/update.request.dto';
-import { UpdateResponseDto } from './dto/update.response.dto';
-import { UpdateCommand } from './update.command';
+import { UpdateCommentRequestBodyDto } from '@app/comment/cqrs/command/update/dto/update.request.dto';
+import { UpdateResponseDto } from '@app/comment/cqrs/command/update/dto/update.response.dto';
+import { UpdateCommand } from '@app/comment/cqrs/command/update/update.command';
+import { AuthGuard } from '@app/auth/guards/auth.guard';
+import { User } from '@app/auth/decorators/user.decorator';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 @Controller('comments')
 @ApiTags('Comments')
 export class UpdateController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   @Put(':commentId')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiBody({
-    type: UpdateRequestBodyDto,
+    type: UpdateCommentRequestBodyDto,
   })
   @ApiCreatedResponse({
     type: UpdateResponseDto,
   })
   async update(
-    @Body() body: UpdateRequestBodyDto,
-    @Res() res: Response,
+    @Body() body: UpdateCommentRequestBodyDto,
     @Param('commentId') commentId: string,
+    @User() user: { sub: string },
   ) {
-    const updateCommand = new UpdateCommand({ ...body, commentId });
+    this.logger.log('info', 'Update comment');
+
+    const updateCommand = new UpdateCommand({
+      ...body,
+      commentId,
+      userId: user.sub,
+    });
 
     const updateCommandResult = await this.commandBus.execute<
       UpdateCommand,
       Result<UpdateResponseDto, { updated: false }>
     >(updateCommand);
 
-    updateCommandResult
+    return updateCommandResult
       .map((val) => {
-        return res.status(HttpStatus.OK).send(val);
+        this.logger.log('info', 'Comment updation completed successfully')
+
+        return val;
       })
       .mapErr((err) => {
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
+        this.logger.error('Comment updation failed with an error');
+
+        throw new BadRequestException(err);
       });
   }
 }

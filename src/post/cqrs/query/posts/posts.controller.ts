@@ -1,31 +1,50 @@
-import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Result } from 'ts-results';
-import { Response } from 'express';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
-import { PostsQuery } from './posts.query';
+import { PostsQuery } from '@app/post/cqrs/query/posts/posts.query';
+import { GetPostsResponseDto } from '@app/post/cqrs/query/posts/dto/posts.response.dto';
 
 @Controller('posts')
 @ApiTags('Posts')
 export class PostsController {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(
+    private readonly queryBus: QueryBus,
+    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+  ) {}
 
   @Get()
-  async get(@Res() res: Response) {
+  @ApiOkResponse({
+    type: GetPostsResponseDto,
+  })
+  async get() {
+    this.logger.log('info', 'Get posts');
+
     const postsQuery = new PostsQuery();
 
     const postsQueryResult = await this.queryBus.execute<
       PostsQuery,
-      Result<any, { found: false }>
+      Result<GetPostsResponseDto, { found: false }>
     >(postsQuery);
 
-    postsQueryResult
+    return postsQueryResult
       .map((val) => {
-        return res.status(HttpStatus.OK).send(val);
+        this.logger.log('info', 'Get posts completed successfully')
+
+        return val;
       })
       .mapErr((err) => {
-        return res.status(HttpStatus.BAD_REQUEST).send(err);
-      });
+        this.logger.error('Get posts failed with an error');
+
+        throw new BadRequestException(err);
+      }).val;
   }
 }

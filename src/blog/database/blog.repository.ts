@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-import { RepositoryBase } from '../../../libs/base/repository.base';
-import { BlogEntity } from './blog.entity';
 import {
+  Repository,
+  FindOptionsWhere,
+  UpdateResult,
   DeleteResult,
   FindManyOptions,
-  FindOptionsWhere,
-  Repository,
-  UpdateResult,
 } from 'typeorm';
-import {
-  EntityProps,
-  IDomainEntityBase,
-} from '../../../libs/base/domain.entity.base';
-import { BlogMapper } from './blog.mapper';
+
+import { IDomainEntityBase, EntityProps } from '@libs/base/domain.entity.base';
+import { RepositoryBase } from '@libs/base/repository.base';
+import { BlogEntity } from '@app/blog/database/blog.entity';
+import { BlogMapper } from '@app/blog/database/blog.mapper';
 
 @Injectable()
 export class BlogRepository implements RepositoryBase<BlogEntity> {
@@ -33,10 +30,20 @@ export class BlogRepository implements RepositoryBase<BlogEntity> {
       return this._mapper.toDomainProps(entity);
     });
   }
-  async findOneById(id: string): Promise<IDomainEntityBase<BlogEntity>> {
+  async findOneById(
+    id: string,
+    userId?: string,
+  ): Promise<IDomainEntityBase<BlogEntity>> {
+    const query: { id: string; user?: { id: string } } = {
+      id,
+    };
+
+    if (userId) {
+      query.user.id = userId;
+    }
     const entity = await this._blogRepository.findOne({
-      where: { id },
-      relations: ['posts'],
+      where: query,
+      relations: ['posts', 'users'],
     });
 
     return entity ? this._mapper.toDomainProps(entity) : null;
@@ -49,8 +56,8 @@ export class BlogRepository implements RepositoryBase<BlogEntity> {
     return this._blogRepository.update(conditions, fields);
   }
 
-  delete(id: string): Promise<DeleteResult> {
-    return this._blogRepository.delete(id);
+  delete(id: string, userId: string): Promise<DeleteResult> {
+    return this._blogRepository.delete({ id, user: { id: userId } });
   }
 
   async find(query?: FindManyOptions<BlogEntity>) {

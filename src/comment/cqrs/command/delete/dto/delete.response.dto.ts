@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class DeleteResponseDto {
+export class DeleteCommentResponseDto {
   @ApiProperty({
     example: true,
     description: 'Is deleted',

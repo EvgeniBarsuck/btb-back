@@ -2,17 +2,16 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CqrsModule } from '@nestjs/cqrs';
 
-import { BlogEntity } from './database/blog.entity';
-import { commandsControllers } from './cqrs/command/commands-controllers';
-import { commandsHandlers } from './cqrs/command/commands-handlers';
-import { BlogMapper } from './database/blog.mapper';
-import { BlogRepository } from './database/blog.repository';
-import { queriesControllers } from './cqrs/query/queries-controllers';
-import { queriesHandlers } from './cqrs/query/queries-handlers';
-import { AuthModule } from 'src/auth/auth.module';
+import { commandsControllers } from '@app/blog/cqrs/command/commands-controllers';
+import { commandsHandlers } from '@app/blog/cqrs/command/commands-handlers';
+import { queriesControllers } from '@app/blog/cqrs/query/queries-controllers';
+import { queriesHandlers } from '@app/blog/cqrs/query/queries-handlers';
+import { BlogEntity } from '@app/blog/database/blog.entity';
+import { BlogMapper } from '@app/blog/database/blog.mapper';
+import { BlogRepository } from '@app/blog/database/blog.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([BlogEntity]), CqrsModule, AuthModule],
+  imports: [TypeOrmModule.forFeature([BlogEntity]), CqrsModule],
   controllers: [...commandsControllers, ...queriesControllers],
   providers: [
     ...commandsHandlers,
