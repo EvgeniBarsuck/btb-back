@@ -49,6 +49,12 @@ Start the server
   docker compose up --build
 ```
 
+For test
+
+```bash
+  yarn test
+```
+
 
 ## API Reference
 
