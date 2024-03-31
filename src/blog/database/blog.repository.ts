@@ -43,7 +43,7 @@ export class BlogRepository implements RepositoryBase<BlogEntity> {
     }
     const entity = await this._blogRepository.findOne({
       where: query,
-      relations: ['posts', 'users'],
+      relations: ['posts', 'user'],
     });
 
     return entity ? this._mapper.toDomainProps(entity) : null;
